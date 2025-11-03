@@ -36,6 +36,7 @@ export default defineConfig(({ mode }) => {
 						singleton: true,
 					},
 				},
+				runtime: '@module-federation/enhanced/runtime',
 			}),
 			react(),
 		],

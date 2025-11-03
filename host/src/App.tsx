@@ -1,16 +1,24 @@
-import React, { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { of, tap } from 'rxjs';
 import './App.css';
 import Counter from './components/Counter';
+import { loadRemote, registerRemotes } from '@module-federation/enhanced/runtime';
 
-// Lazy-load remote safely
-const loadRemoteSafely = async () => {
+
+const loadRemoteComponent = async (): Promise<{ default: React.ComponentType<any> }> => {
+	registerRemotes([
+		{
+			name: 'remote',
+			type: 'module',
+			entry: 'http://localhost:4174/remoteEntry.js',
+		},
+	])
+
 	try {
-		// @ts-ignore - module federation import
-		const module = await import('remote/remote-app');
-		return module;
-	} catch (err) {
-		console.warn('Remote "remote/remote-app" failed to load:', err);
+		const module = await loadRemote('remote/remote-app')
+		return module as { default: React.ComponentType<any> }
+	}
+	catch (err) {
 		// Fallback module: a simple local component
 		return {
 			default: () => (
@@ -31,7 +39,7 @@ const loadRemoteSafely = async () => {
 	}
 };
 
-const Remote = lazy(loadRemoteSafely);
+const Remote = lazy(loadRemoteComponent);
 
 export default function App() {
 	useEffect(() => {
